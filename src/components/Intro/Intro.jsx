@@ -7,7 +7,7 @@ const Intro = () => {
   <div className="intro-content">
     <h1>Premium Carbon Fiber Tubes for Drones & Robotics</h1>
     <p>
-      Indian Robo Store offers a wide range of <strong>premium drone carbon fiber tubes</strong>, perfect for drone and robotics applications. Known for their lightweight, high strength, and durability, these tubes are ideal for constructing frames, arms, and structural components.
+      Fortune India Store offers a wide range of <strong>premium drone carbon fiber tubes</strong>, perfect for drone and robotics applications. Known for their lightweight, high strength, and durability, these tubes are ideal for constructing frames, arms, and structural components.
     </p>
     <div className="tubes-sizes">
       <div className="tube-card">

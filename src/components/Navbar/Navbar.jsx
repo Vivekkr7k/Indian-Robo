@@ -3,6 +3,7 @@ import './Navbar.css'
 import { assets } from './../../assets/assets';
 import {Link, useNavigate} from 'react-router-dom'
 import { StoreContext } from './../context/StoreContext';
+import logo from "../../assets/logo.jpeg"
 
 const Navbar = ({setShowLogin}) => {
 
@@ -20,7 +21,7 @@ const Navbar = ({setShowLogin}) => {
 
   return (
     <div className='navbar'>
-       <Link to='/'> <img src='https://indianrobostore.com/_next/image?url=https%3A%2F%2Fd1k5dvsh23g3c2.cloudfront.net%2FProd%2Futility%2Fblack%2520logo.png&w=1920&q=75' alt="" className='logo' /></Link>
+       <Link to='/'> <img src={logo} alt="" className='logo' /></Link>
         <ul className="navbar-menu">
             <Link to='/' onClick={()=> setMenu('home')} className={menu === 'home'?'active':''}>home</Link>
             <a href='#explore-menu' onClick={()=> setMenu('menu')} className={menu === 'menu'?'active':''}>Category</a>
