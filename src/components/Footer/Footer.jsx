@@ -1,13 +1,14 @@
 import React from 'react'
 import './Footer.css'
 import { assets } from '../../assets/assets'
+import logo from "../../assets/logo.jpeg"
 
 const Footer = () => {
   return (
     <div className='footer' id='footer'>
         <div className="footer-content">
             <div className="footer-content-left">
-                <img src='https://indianrobostore.com/_next/image?url=https%3A%2F%2Fd1k5dvsh23g3c2.cloudfront.net%2FProd%2Futility%2Fblack%2520logo.png&w=1920&q=75' alt="" />
+                <img className="footer-logo" src={logo} alt="" />
                 <p>Indian Robo Store offers a wide range of premium drone carbon fiber tubes, perfect for drone and robotics applications. Known for their lightweight, high strength, and durability, these tubes are ideal for constructing frames, arms, and structural components. Popular sizes include 48*38*1000 mm (1mm thickness) for precision builds and 40*36*1000 mm (2mm thickness) for added strength in heavy-duty projects.</p>
                 <div className="footer-social-icons">
                     <img src={assets.facebook_icon} alt="" />

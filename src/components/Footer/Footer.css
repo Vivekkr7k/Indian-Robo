@@ -59,5 +59,13 @@
     }
 }
 
+.footer-logo {
+  width: 120px;      /* Set your desired width */
+  height: auto;      /* Preserve aspect ratio */
+  display: block;    /* Ensure proper layout spacing */
+  margin-bottom: 16px; /* Optional: add spacing below logo */
+}
+
+
 
 
