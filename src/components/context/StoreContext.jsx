@@ -8,7 +8,7 @@ const StoreContextProvider = (props) => {
     const [cartItems, setCartItems] = useState({});
     const [token, setToken] = useState(localStorage.getItem("token") || "");
     const [food_list, setFoodList] = useState([]);
-    const url = "http://localhost:5000";
+    const url = "https://fortune-2.onrender.com/api";
 
     // Create axios instance
     const api = axios.create({
