@@ -1,42 +1,52 @@
 import { createContext, useEffect, useState } from "react";
 import axios from 'axios';
+import Globalapi from '../../utils/Globalapi';
 
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
     const [cartItems, setCartItems] = useState({});
-    const [token, setToken] = useState("");
+    const [token, setToken] = useState(localStorage.getItem("token") || "");
     const [food_list, setFoodList] = useState([]);
     const url = "http://localhost:5000";
 
-    // Create axios instance with default headers
+    // Create axios instance
     const api = axios.create({
         baseURL: url,
         headers: {
-            'Content-Type': 'application/json',
-            'token': token
+            'Content-Type': 'application/json'
         }
     });
 
-    const addToCart = async (itemId) => {
-        const updatedCart = { ...cartItems };
-        if (!updatedCart[itemId]) {
-            updatedCart[itemId] = 1;
-        } else {
-            updatedCart[itemId] += 1;
+    // Add token to every request automatically
+    api.interceptors.request.use(config => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
+        return config;
+    });
+
+    // ✅ Updated to accept quantity as parameter
+    const addToCart = async (itemId, quantity = 1) => {
+        const updatedCart = { ...cartItems };
+        
+        // ✅ Add the specified quantity
+        updatedCart[itemId] = (updatedCart[itemId] || 0) + quantity;
+        
         setCartItems(updatedCart);
 
         if (token) {
             try {
-                await api.post('/api/cart/add', { itemId });
+                // ✅ Send quantity to backend
+                await api.post(`${Globalapi.CART_ADD}`, { itemId, quantity });
             } catch (error) {
                 console.error("Error adding to cart:", error);
-                // Revert UI if API call fails
+                // Revert on error
                 setCartItems(prev => {
                     const reverted = { ...prev };
-                    if (reverted[itemId] > 1) {
-                        reverted[itemId] -= 1;
+                    if (reverted[itemId] > quantity) {
+                        reverted[itemId] -= quantity;
                     } else {
                         delete reverted[itemId];
                     }
@@ -45,6 +55,8 @@ const StoreContextProvider = (props) => {
             }
         }
     };
+
+    
 
     const removeFromCart = async (itemId) => {
         const updatedCart = { ...cartItems };
@@ -57,10 +69,9 @@ const StoreContextProvider = (props) => {
 
         if (token) {
             try {
-                await api.post('/api/cart/remove', { itemId });
+                await api.post(`${Globalapi.CART_REMOVE}`, { itemId });
             } catch (error) {
                 console.error("Error removing from cart:", error);
-                // Revert UI if API call fails
                 setCartItems(prev => ({
                     ...prev,
                     [itemId]: (prev[itemId] || 0) + 1
@@ -78,16 +89,16 @@ const StoreContextProvider = (props) => {
 
     const fetchFoodList = async () => {
         try {
-            const response = await api.get("/api/food/list");
+            const response = await api.get(`${Globalapi.FOOD_LIST}`);
             setFoodList(response.data.data);
         } catch (error) {
             console.error("Failed to fetch food list:", error);
         }
     };
 
-    const loadCartData = async (token) => {
+    const loadCartData = async () => {
         try {
-            const response = await api.post("/api/cart/get", {});
+            const response = await api.post(`${Globalapi.CART_GET}`, {});
             setCartItems(response.data.cartData || {});
         } catch (error) {
             console.error("Failed to load cart data:", error);
@@ -95,20 +106,48 @@ const StoreContextProvider = (props) => {
         }
     };
 
+    // Handle expired tokens
+    api.interceptors.response.use(
+        response => response,
+        error => {
+            if (error.response?.status === 401) {
+                localStorage.removeItem('token');
+                setToken('');
+            }
+            return Promise.reject(error);
+        }
+    );
+
     useEffect(() => {
+        fetchFoodList();
         if (token) {
-            api.defaults.headers['token'] = token;
-            loadCartData(token);
+            loadCartData();
         }
     }, [token]);
 
     useEffect(() => {
-        const savedToken = localStorage.getItem("token");
-        if (savedToken) {
-            setToken(savedToken);
+        // Sync token with localStorage
+        if (token) {
+            localStorage.setItem('token', token);
+        } else {
+            localStorage.removeItem('token');
         }
-        fetchFoodList();
-    }, []);
+    }, [token]);
+
+
+      const clearCart = async () => {
+        // Clear cart locally
+        setCartItems({});
+        
+        if (token) {
+            try {
+                // Clear cart on server
+                await api.post(`${Globalapi.CART_CLEAR}`);
+            } catch (error) {
+                console.error("Error clearing cart:", error);
+            }
+        }
+    };
 
     const contextValue = {
         food_list,
@@ -120,7 +159,12 @@ const StoreContextProvider = (props) => {
         url,
         token,
         setToken,
+        clearCart
     };
+
+    
+
+    // Add to context value
 
     return (
         <StoreContext.Provider value={contextValue}>

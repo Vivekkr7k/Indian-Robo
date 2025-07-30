@@ -6,7 +6,7 @@
 }
 
 .navbar .logo{
-    width: 150px;
+    width: 200px;
 }
 
 .navbar-menu{
@@ -14,7 +14,8 @@
     list-style: none;
     gap: 20px;
     color: #49557e;
-    font-size: 18px;
+    font-size: 22px;
+   font-weight: 600;
 }
 
 .navbar-right{

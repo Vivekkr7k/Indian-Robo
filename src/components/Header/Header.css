@@ -1,62 +1,201 @@
-.header{
-    height: 34vw;
-    margin: 30px auto;
-    background: url('https://static.vecteezy.com/system/resources/thumbnails/039/204/232/small_2x/ai-generated-stack-of-stainless-steel-pipes-background-for-metallurgical-industry-backdrop-concept-image-photo.jpeg') no-repeat;
-    background-size: contain;
-    position: relative;
-    border-radius: 52px;
+.header {
+  position: relative;
+  width: 100%;
+  height: 34vw;
+  margin: 30px auto;
+  border-radius: 40px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: #000;
 }
 
-.header-contents{
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    gap: 1.5vw;
-    max-width: 50%;
-    bottom: 10%;
-    left: 6vw;
-    animation: fadeIn 3s;
+.carousel-slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
-.header-contents h2{
-    font-weight: 500;
-    color: rgb(255, 255, 255);
-    font-size:max(4.5vw, 22px);
+.slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+  transform: scale(1.05);
+}
+
+.slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.25));
+  z-index: 0;
+}
+
+.slide.active {
+  opacity: 1;
+  z-index: 1;
+  transform: scale(1);
+}
+
+.header-contents {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 48%;
+  bottom: 12%;
+  left: 6%;
+  gap: 1.5vw;
+  z-index: 2;
+  animation: fadeIn 1.5s ease-in-out;
+  color: #ffffff;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.header-contents h2 {
+  font-size: max(3.5vw, 24px);
+  font-weight: 700;
+  margin: 0 0 0.6vw;
+  color: #fdfdfd;
 }
 
 .header-contents p {
-    color: white;
-    font-size: 1vw;
+  font-size: max(1.1vw, 14px);
+  line-height: 1.6;
+  color: #f0f0f0;
 }
 
-.header-contents button{
-    border: none;
-    color: #110101;
-    font-weight: 500;
-    padding: 1vw 2.3vw;
-    background-color: white;
-    font-size: max(1vw,13px);
-    border-radius: 50px;
+/* Arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 2vw;
+  width: 3.5vw;
+  height: 3.5vw;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2;
+  backdrop-filter: blur(4px);
 }
 
-@media (max-width:1050px){
-.header-contents{
-    max-width: 45%;
+.carousel-arrow:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-50%) scale(1.1);
 }
+
+.prev {
+  left: 1.5vw;
 }
 
-@media (max-width:750px){
-    
-    .header-contents{
-        max-width: 65%;
-    }
+.next {
+  right: 1.5vw;
+}
 
-    .header-contents p {
-        display: none;
-    }
+/* Indicators */
+.carousel-indicators {
+  position: absolute;
+  bottom: 2vw;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 2;
+}
 
-    .header-contents button{
-        padding: 2vw 4vw;
-    }
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: #fff;
+  transform: scale(1.3);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .header-contents {
+    max-width: 60%;
+  }
+
+  .header-contents h2 {
+    font-size: 4.2vw;
+  }
+
+  .header-contents p {
+    font-size: 1.6vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    height: 60vw;
+    border-radius: 32px;
+  }
+
+  .slide {
+    border-radius: 32px;
+  }
+
+  .header-contents {
+    align-items: center;
+    text-align: center;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 16%;
+    max-width: 90%;
+  }
+
+  .carousel-arrow {
+    width: 7vw;
+    height: 7vw;
+    font-size: 4vw;
+  }
+
+  .header-contents h2 {
+    font-size: 5.2vw;
+  }
+
+  .header-contents p {
+    font-size: 2.6vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    height: 75vw;
+  }
+
+  .header-contents h2 {
+    font-size: 6.5vw;
+  }
+
+  .header-contents p {
+    font-size: 3.5vw;
+  }
+
+  .carousel-indicators {
+    bottom: 4vw;
+  }
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }

@@ -1,24 +1,32 @@
 import React, { useEffect, useState, useContext } from 'react';
 import './ExploreMenu.css';
 import axios from 'axios';
-import { FiChevronRight, FiX } from 'react-icons/fi';
+import { FiChevronRight, FiX, FiShoppingCart, FiPlus, FiMinus } from 'react-icons/fi';
 import { StoreContext } from '../context/StoreContext';
+import ProductDetails from '../ProductDetail/ProductDetails';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Globalapi from '../../utils/Globalapi';
 
 const ExploreMenu = () => {
-  const { food_list } = useContext(StoreContext);
+  const { food_list, addToCart, cartItems } = useContext(StoreContext);
   const [menuList, setMenuList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/category/all');
+        const res = await axios.get(`${Globalapi.CATEGORY_ALL}`);
         if (res.data.success) {
           setMenuList(res.data.data);
         }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
       } finally {
         setLoading(false);
       }
@@ -46,10 +54,44 @@ const ExploreMenu = () => {
     setIsModalOpen(true);
   };
 
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedCategory(null);
     setSelectedSubcategory(null);
+  };
+
+  const closeProductModal = () => {
+    setIsProductModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleAddToCart = (itemId, quantity, itemData) => {
+    try {
+      addToCart(itemId, quantity);
+      toast.success(`${quantity} ${itemData.name} added to cart!`, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (error) {
+      toast.error('Failed to add item to cart', {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      console.error('Error adding to cart:', error);
+    }
   };
 
   if (loading) {
@@ -64,7 +106,7 @@ const ExploreMenu = () => {
     <div className="menu-container">
       <div className="menu-header">
         <h1 className="menu-title">Our Product Category</h1>
-        <p className="menu-subtitle">Discover our delicious offerings</p>
+        <p className="menu-subtitle">Discover our premium offerings</p>
       </div>
 
       <div className="menu-categories-grid">
@@ -105,14 +147,20 @@ const ExploreMenu = () => {
               </div>
             </div>
 
-            <div className="modal-body">
+            <div className="modal-body-scrollable">
               {/* Main category items */}
               {getItems(selectedCategory._id).length > 0 && (
                 <div className="modal-section">
                   <h3>Main Items</h3>
                   <div className="modal-products-grid">
                     {getItems(selectedCategory._id).map(item => (
-                      <ProductCard key={item._id} item={item} />
+                      <ProductCard 
+                        key={item._id} 
+                        item={item} 
+                        cartItems={cartItems}
+                        onClick={() => openProductModal(item)}
+                        onAddToCart={handleAddToCart}
+                      />
                     ))}
                   </div>
                 </div>
@@ -154,17 +202,41 @@ const ExploreMenu = () => {
             </button>
             
             <div className="modal-header">
-              <h2>{selectedSubcategory.name}</h2>
-              <p>{getItems(selectedCategory._id, selectedSubcategory._id).length} items available</p>
+              <div className="modal-header-content">
+                <h2>{selectedSubcategory.name}</h2>
+                <p className="items-count">{getItems(selectedCategory._id, selectedSubcategory._id).length} items available</p>
+              </div>
             </div>
 
-            <div className="modal-body">
+            <div className="modal-body-scrollable">
               <div className="modal-products-grid">
                 {getItems(selectedCategory._id, selectedSubcategory._id).map(item => (
-                  <ProductCard key={item._id} item={item} />
+                  <ProductCard 
+                    key={item._id} 
+                    item={item} 
+                    cartItems={cartItems}
+                    onClick={() => openProductModal(item)}
+                    onAddToCart={handleAddToCart}
+                  />
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Details Modal */}
+      {isProductModalOpen && selectedProduct && (
+        <div className="product-modal-overlay">
+          <div className="product-modal-content">
+            <button className="modal-close-btn" onClick={closeProductModal}>
+              <FiX size={24} />
+            </button>
+            <ProductDetails 
+              product={selectedProduct} 
+              onAddToCart={handleAddToCart}
+              onClose={closeProductModal}
+            />
           </div>
         </div>
       )}
@@ -172,54 +244,32 @@ const ExploreMenu = () => {
   );
 };
 
-const ProductCard = ({ item }) => {
-  const { addToCart, cartItems } = useContext(StoreContext);
+const ProductCard = ({ item, cartItems, onClick, onAddToCart }) => {
   const quantity = cartItems[item._id] || 0;
 
+  const handleAddToCartClick = (e) => {
+    e.stopPropagation();
+    onAddToCart(item._id, 1, item);
+  };
+
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={onClick}>
       <div className="product-image-wrapper">
         <img src={item.image} alt={item.name} className="product-image" />
+        {quantity > 0 && (
+          <div className="product-quantity-badge">{quantity} in cart</div>
+        )}
       </div>
       <div className="product-details">
         <h3 className="product-name">{item.name}</h3>
-        <p className="product-description">{item.description}</p>
-        <div className="product-actions">
-          <span className="product-price">${item.price.toFixed(2)}</span>
-          {quantity > 0 ? (
-            <div className="quantity-controls">
-              <button 
-                className="quantity-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addToCart(item._id, -1);
-                }}
-              >
-                −
-              </button>
-              <span className="quantity">{quantity}</span>
-              <button 
-                className="quantity-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addToCart(item._id, 1);
-                }}
-              >
-                +
-              </button>
-            </div>
-          ) : (
-            <button 
-              className="add-to-cart-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                addToCart(item._id, 1);
-              }}
-            >
-              Add to Cart
-            </button>
-          )}
-        </div>
+        <p className="product-price">₹{item.price}</p>
+        <button 
+          className="add-to-cart-btn"
+          onClick={handleAddToCartClick}
+        >
+          <FiShoppingCart size={16} />
+          Add to Cart
+        </button>
       </div>
     </div>
   );
