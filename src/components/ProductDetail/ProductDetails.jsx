@@ -20,7 +20,6 @@ const ProductDetails = ({
   const [quantity, setQuantity] = useState(1);
   const [mainImage, setMainImage] = useState(image);
 
-  // ✅ Corrected shipping calculation
   const calculateShippingCharge = (qty) => {
     return 550 + (qty - 1) * 55;
   };
@@ -97,14 +96,17 @@ const ProductDetails = ({
           <p className="pd-price">₹{price.toLocaleString()} <span className='pd-small'>"Inc GST"</span></p>
 
           <div className="pd-buy-section">
-            <label htmlFor="qty">Qty:</label>
-            <input
-              type="number"
-              id="qty"
-              min="1"
-              value={quantity}
-              onChange={handleQuantity}
-            />
+            <div className="pd-quantity-control">
+              <label htmlFor="qty">Qty:</label>
+              <input
+                type="number"
+                id="qty"
+                min="1"
+                value={quantity}
+                onChange={handleQuantity}
+                className="pd-quantity-input"
+              />
+            </div>
             <button
               className="btn-add-cart"
               onClick={handleAddToCart}
@@ -114,37 +116,37 @@ const ProductDetails = ({
           </div>
 
           {description && (
-            <>
+            <div className="pd-description">
               <h3 className="pd-desc">Description</h3>
               <p>{description}</p>
-            </>
+            </div>
           )}
 
-          {/* Shipping info */}
-          <div className="pd-shipping-info">
-            <h3 className="pd-shipping-title">Shipping & Packaging</h3>
-            <p>Shipping: ₹{calculateShippingCharge(quantity)}</p>
-            <p className="pd-shipping-note">
-              ₹550 base + ₹55 per additional item
-            </p>
-          </div>
+          <div className="pd-details-grid">
+            <div className="pd-shipping-info">
+              <h3 className="pd-section-title">Shipping & Packaging</h3>
+              <p>Shipping: ₹{calculateShippingCharge(quantity)}</p>
+              <p className="pd-shipping-note">
+                ₹550 base + ₹55 per additional item
+              </p>
+            </div>
 
-          {/* Price Breakdown */}
-          <div className="pd-price-breakdown">
-            <h3 className="pd-price-title">Price Breakdown</h3>
-            <div className="pd-price-row">
-              <span>Product Price:</span>
-              <span>₹{(price * quantity).toLocaleString()}</span>
+            <div className="pd-price-breakdown">
+              <h3 className="pd-section-title">Price Breakdown</h3>
+              <div className="pd-price-row">
+                <span>Product Price:</span>
+                <span>₹{(price * quantity).toLocaleString()}</span>
+              </div>
+              <div className="pd-price-row">
+                <span>Shipping & Packaging:</span>
+                <span>₹{calculateShippingCharge(quantity)}</span>
+              </div>
+              <div className="pd-price-row pd-price-total">
+                <span>Total:</span>
+                <span>₹{((price * quantity) + calculateShippingCharge(quantity)).toLocaleString()}</span>
+              </div>
+              <p className="pd-international">For Outside INDIA orders, please Contact us</p>
             </div>
-            <div className="pd-price-row">
-              <span>Shipping & Packaging:</span>
-              <span>₹{calculateShippingCharge(quantity)}</span>
-            </div>
-            <div className="pd-price-row pd-price-total">
-              <span>Total:</span>
-              <span>₹{((price * quantity) + calculateShippingCharge(quantity)).toLocaleString()}</span>
-            </div>
-            <h1>For Outside INDIA order , please Contact us</h1>
           </div>
         </div>
       </div>

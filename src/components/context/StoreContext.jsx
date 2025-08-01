@@ -8,7 +8,11 @@ const StoreContextProvider = (props) => {
     const [cartItems, setCartItems] = useState({});
     const [token, setToken] = useState(localStorage.getItem("token") || "");
     const [food_list, setFoodList] = useState([]);
-    const url = "https://fortune-2.onrender.com/api";
+    const [highlightProductId, setHighlightProductId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const url = "http://localhost:5000";
 
     // Create axios instance
     const api = axios.create({
@@ -27,22 +31,18 @@ const StoreContextProvider = (props) => {
         return config;
     });
 
-    // ✅ Updated to accept quantity as parameter
     const addToCart = async (itemId, quantity = 1) => {
         const updatedCart = { ...cartItems };
         
-        // ✅ Add the specified quantity
         updatedCart[itemId] = (updatedCart[itemId] || 0) + quantity;
         
         setCartItems(updatedCart);
 
         if (token) {
             try {
-                // ✅ Send quantity to backend
                 await api.post(`${Globalapi.CART_ADD}`, { itemId, quantity });
             } catch (error) {
                 console.error("Error adding to cart:", error);
-                // Revert on error
                 setCartItems(prev => {
                     const reverted = { ...prev };
                     if (reverted[itemId] > quantity) {
@@ -55,8 +55,6 @@ const StoreContextProvider = (props) => {
             }
         }
     };
-
-    
 
     const removeFromCart = async (itemId) => {
         const updatedCart = { ...cartItems };
@@ -126,7 +124,6 @@ const StoreContextProvider = (props) => {
     }, [token]);
 
     useEffect(() => {
-        // Sync token with localStorage
         if (token) {
             localStorage.setItem('token', token);
         } else {
@@ -134,19 +131,27 @@ const StoreContextProvider = (props) => {
         }
     }, [token]);
 
-
-      const clearCart = async () => {
-        // Clear cart locally
+    const clearCart = async () => {
         setCartItems({});
-        
         if (token) {
             try {
-                // Clear cart on server
                 await api.post(`${Globalapi.CART_CLEAR}`);
             } catch (error) {
                 console.error("Error clearing cart:", error);
             }
         }
+    };
+
+    // Search function
+    const searchProducts = (query) => {
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        const results = food_list.filter(item => 
+            item.name.toLowerCase().includes(query.toLowerCase())
+        );
+        setSearchResults(results);
     };
 
     const contextValue = {
@@ -159,12 +164,17 @@ const StoreContextProvider = (props) => {
         url,
         token,
         setToken,
-        clearCart
+        clearCart,
+        highlightProductId,
+        setHighlightProductId,
+        searchQuery,
+        setSearchQuery,
+        searchResults,
+        setSearchResults,
+        showSearchResults,
+        setShowSearchResults,
+        searchProducts
     };
-
-    
-
-    // Add to context value
 
     return (
         <StoreContext.Provider value={contextValue}>

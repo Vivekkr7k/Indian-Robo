@@ -1,4 +1,4 @@
-const BASE_URL = 'https://fortune-2.onrender.com/api';
+const BASE_URL = 'https://e-commerce-website-qym3.onrender.com/api';
 
 const GlobalApi = {
   // Category APIs

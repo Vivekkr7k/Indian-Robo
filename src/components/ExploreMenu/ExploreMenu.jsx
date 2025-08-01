@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import './ExploreMenu.css';
 import axios from 'axios';
-import { FiChevronRight, FiX, FiShoppingCart, FiPlus, FiMinus } from 'react-icons/fi';
+import { FiChevronRight, FiX, FiShoppingCart } from 'react-icons/fi';
 import { StoreContext } from '../context/StoreContext';
 import ProductDetails from '../ProductDetail/ProductDetails';
 import { toast } from 'react-toastify';
@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Globalapi from '../../utils/Globalapi';
 
 const ExploreMenu = () => {
-  const { food_list, addToCart, cartItems } = useContext(StoreContext);
+  const { food_list, addToCart, cartItems, highlightProductId } = useContext(StoreContext);
   const [menuList, setMenuList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -33,6 +33,21 @@ const ExploreMenu = () => {
     };
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    // Highlight product when coming from search
+    if (highlightProductId) {
+      const element = document.getElementById(`product-${highlightProductId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('highlight-product');
+        
+        setTimeout(() => {
+          element.classList.remove('highlight-product');
+        }, 2000);
+      }
+    }
+  }, [highlightProductId]);
 
   const getItems = (categoryId, subcategoryId = null) => {
     return food_list.filter(item => {
@@ -103,7 +118,7 @@ const ExploreMenu = () => {
   }
 
   return (
-    <div className="menu-container">
+    <div className="menu-container" id="explore-menu">
       <div className="menu-header">
         <h1 className="menu-title">Our Product Category</h1>
         <p className="menu-subtitle">Discover our premium offerings</p>
@@ -160,6 +175,7 @@ const ExploreMenu = () => {
                         cartItems={cartItems}
                         onClick={() => openProductModal(item)}
                         onAddToCart={handleAddToCart}
+                        highlightId={highlightProductId}
                       />
                     ))}
                   </div>
@@ -217,6 +233,7 @@ const ExploreMenu = () => {
                     cartItems={cartItems}
                     onClick={() => openProductModal(item)}
                     onAddToCart={handleAddToCart}
+                    highlightId={highlightProductId}
                   />
                 ))}
               </div>
@@ -244,8 +261,22 @@ const ExploreMenu = () => {
   );
 };
 
-const ProductCard = ({ item, cartItems, onClick, onAddToCart }) => {
+const ProductCard = ({ item, cartItems, onClick, onAddToCart, highlightId }) => {
   const quantity = cartItems[item._id] || 0;
+  const isHighlighted = highlightId === item._id;
+
+  // Add this useEffect for highlighting
+  useEffect(() => {
+    if (highlightId === item._id) {
+      const element = document.getElementById(`product-${item._id}`);
+      if (element) {
+        element.classList.add('highlight-product');
+        setTimeout(() => {
+          element.classList.remove('highlight-product');
+        }, 2000);
+      }
+    }
+  }, [highlightId, item._id]);
 
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
@@ -253,7 +284,11 @@ const ProductCard = ({ item, cartItems, onClick, onAddToCart }) => {
   };
 
   return (
-    <div className="product-card" onClick={onClick}>
+    <div 
+      id={`product-${item._id}`}
+      className={`product-card ${isHighlighted ? 'highlight-product' : ''}`}
+      onClick={onClick}
+    >
       <div className="product-image-wrapper">
         <img src={item.image} alt={item.name} className="product-image" />
         {quantity > 0 && (

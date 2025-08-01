@@ -73,6 +73,12 @@ const PlaceOrder = () => {
         throw new Error('Please enter a valid 10-digit phone number');
       }
 
+      // Check if order has too many items
+      const itemCount = Object.keys(cartItems).length;
+      if (itemCount > 50) {
+        throw new Error('Too many items in cart. Please reduce to 50 items or less.');
+      }
+
       // Prepare order items
       const orderItems = food_list
         .filter(item => cartItems[item._id] > 0)
@@ -81,7 +87,6 @@ const PlaceOrder = () => {
           name: item.name,
           price: item.price,
           quantity: cartItems[item._id],
-          image: item.image,
           shippingCharge: calculateShippingForProduct(cartItems[item._id])
         }));
 
@@ -93,13 +98,83 @@ const PlaceOrder = () => {
         totalAmount: totalAmount
       };
 
+      console.log('Order data size:', JSON.stringify(orderData).length);
+      console.log('Number of items:', orderItems.length);
+      console.log('Environment:', window.location.hostname);
+      console.log('Token length:', token ? token.length : 0);
+      console.log('Request URL:', `${url}/api/order/place`);
+
       // Step 1: Create order on backend
-      const orderResponse = await axios.post(`${url}/api/order/place`, orderData, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      let orderResponse;
+      
+      // For deployed environment, use minimal headers
+      const isDeployed = window.location.hostname !== 'localhost';
+      const requestHeaders = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+      
+      // Remove unnecessary headers for deployed environment
+      if (isDeployed) {
+        console.log('Using minimal headers for deployed environment');
+        // Add compression header for deployed environment
+        requestHeaders['Accept-Encoding'] = 'gzip, deflate';
+        // Remove any potential large headers
+        delete requestHeaders['User-Agent'];
+        delete requestHeaders['Referer'];
+      }
+      
+      try {
+        orderResponse = await axios.post(`${url}/api/order/place`, orderData, {
+          headers: requestHeaders
+        });
+              } catch (error) {
+          if (error.response?.status === 431) {
+            // If headers are too large, try with minimal data
+            console.log('Headers too large, trying with minimal data...');
+            const minimalOrderData = {
+              address: data,
+              items: orderItems.map(item => ({
+                productId: item.productId,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+              })),
+              amount: getTotalCartAmount(),
+              shippingCharge: totalShipping,
+              totalAmount: totalAmount
+            };
+            
+            try {
+              orderResponse = await axios.post(`${url}/api/order/place`, minimalOrderData, {
+                headers: requestHeaders
+              });
+            } catch (secondError) {
+              if (secondError.response?.status === 431) {
+                // If still too large, try with even more minimal data
+                console.log('Still too large, trying with product IDs only...');
+                const ultraMinimalOrderData = {
+                  address: data,
+                  items: orderItems.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity
+                  })),
+                  amount: getTotalCartAmount(),
+                  shippingCharge: totalShipping,
+                  totalAmount: totalAmount
+                };
+                
+                orderResponse = await axios.post(`${url}/api/order/place`, ultraMinimalOrderData, {
+                  headers: requestHeaders
+                });
+              } else {
+                throw secondError;
+              }
+            }
+          } else {
+            throw error;
+          }
         }
-      });
 
       if (!orderResponse.data.success) {
         throw new Error(orderResponse.data.message || 'Failed to create order');
@@ -190,6 +265,10 @@ const PlaceOrder = () => {
         setToken('');
         navigate('/login');
         toast.error('Session expired. Please login again.');
+      } else if (error.response?.status === 413) {
+        toast.error('Order data too large. Please reduce the number of items or contact support.');
+      } else if (error.response?.status === 431) {
+        toast.error('Request headers too large. Please try again or contact support.');
       } else {
         toast.error(error.message || 'Failed to process order. Please try again.');
       }
