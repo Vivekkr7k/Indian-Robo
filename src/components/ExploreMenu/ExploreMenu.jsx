@@ -158,7 +158,7 @@ const ExploreMenu = () => {
               />
               <div>
                 <h2>{selectedCategory.name}</h2>
-                <p>{getItems(selectedCategory._id).length} items available</p>
+                {/* <p>{getItems(selectedCategory._id).length} items available</p> */}
               </div>
             </div>
 
